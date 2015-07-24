@@ -1,0 +1,8 @@
+<span class="ez-paginator-state" ng-class="config.stateContainerClass" dropdown>
+  <a class="dropdown-toggle" ng-class="config.stateToggleClass" dropdown-toggle>{{ pagination.state.name }} <span class="caret"></span></a>
+  <ul class="dropdown-menu" ng-class="config.stateDropdownMenuClass">
+    <li ng-repeat="state in config.states"><a ng-click="setState(state)">{{ ::state.name }}</a></li>
+  </ul>
+</span>
+
+

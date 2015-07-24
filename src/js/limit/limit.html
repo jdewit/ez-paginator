@@ -1,0 +1,6 @@
+<span class="ez-paginator-limit" ng-class="config.limitContainerClass" dropdown>
+  <a class="dropdown-toggle" ng-class="config.limitToggleClass" dropdown-toggle>{{ pagination.limit }} <span class="caret"></span></a>
+  <ul class="dropdown-menu" ng-class="config.limitDropdownMenuClass">
+    <li ng-repeat="limit in config.limits"><a ng-click="setLimit(limit)">{{ ::limit }}</a></li>
+  </ul>
+</span>

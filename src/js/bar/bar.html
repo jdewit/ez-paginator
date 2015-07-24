@@ -1,0 +1,7 @@
+<div class="ez-paginator-bar">
+  <span ez-paginator="pagination" on-change="onChange" ez-config="config"></span>
+
+  <span ng-if="!config.hideLimit" ez-paginator-limit="pagination" on-change="onChange" ez-config="config"></span>
+
+  <span ng-if="!config.hideState" ez-paginator-state="pagination" on-change="onChange" ez-config="config"></span>
+</div>
