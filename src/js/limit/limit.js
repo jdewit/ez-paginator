@@ -33,6 +33,7 @@ angular.module('ez.paginator').directive('ezPaginatorLimit', [
 
         scope.setLimit = function(limit) {
           scope.pagination.limit = limit;
+          scope.pagination.page = 1;
 
           if (useCallback) {
             scope.onChange(scope.pagination);
