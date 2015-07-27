@@ -18,7 +18,6 @@ angular.module("ez.paginator").directive("ezPaginatorBar", [ "EzPaginatorConfig"
 angular.module("ez.paginator").constant("EzPaginatorConfig", {
     maxPages: 10,
     initialPage: 1,
-    useGetVars: false,
     showPaginator: true,
     showState: true,
     showLimit: true,
@@ -29,13 +28,15 @@ angular.module("ez.paginator").constant("EzPaginatorConfig", {
         id: "deleted",
         name: "Deleted"
     } ],
+    defaultState: "active",
     stateToggleClass: "btn btn-default",
     stateDropdownMenuClass: "pointer pull-right",
-    stateContainerClass: "dropdown",
+    stateContainerClass: "dropup",
     limits: [ 5, 15, 25, 50 ],
+    defaultLimit: 15,
     limitToggleClass: "btn btn-default",
     limitDropdownMenuClass: "pointer pull-right",
-    limitContainerClass: "dropdown",
+    limitContainerClass: "dropup",
     get: function(scope, attrs) {
         var config = angular.extend({}, this);
         delete config.get;
@@ -46,7 +47,17 @@ angular.module("ez.paginator").constant("EzPaginatorConfig", {
             var properties = Object.getOwnPropertyNames(this);
             properties.forEach(function(prop) {
                 if (attrs.hasOwnProperty(prop)) {
-                    config[prop] = attrs[prop];
+                    if (typeof config[prop] === "boolean") {
+                        if (attrs[prop] === "true") {
+                            config[prop] = true;
+                        } else if (attrs[prop] === "false") {
+                            config[prop] = false;
+                        } else {
+                            config[prop] = scope.$parent[attrs[prop]];
+                        }
+                    } else {
+                        config[prop] = attrs[prop];
+                    }
                 }
             });
         }
@@ -54,10 +65,9 @@ angular.module("ez.paginator").constant("EzPaginatorConfig", {
     }
 });
 
-angular.module("ez.paginator").directive("ezPaginatorLimit", [ "$routeParams", "EzPaginatorConfig", function($routeParams, EzPaginatorConfig) {
+angular.module("ez.paginator").directive("ezPaginatorLimit", [ "$routeParams", "$location", "EzPaginatorConfig", function($routeParams, $location, EzPaginatorConfig) {
     return {
         restrict: "A",
-        replace: true,
         scope: {
             pagination: "=ezPaginatorLimit",
             ezConfig: "=?",
@@ -66,31 +76,64 @@ angular.module("ez.paginator").directive("ezPaginatorLimit", [ "$routeParams", "
         templateUrl: "ez_paginator/limit/limit.html",
         link: function(scope, $el, attrs) {
             scope.config = EzPaginatorConfig.get(scope, attrs);
-            scope.pagination.limit = scope.config.limits[0];
+            var useCallback = typeof scope.onChange === "function";
+            if (!scope.pagination.limit || scope.config.limits.indexOf(scope.pagination.limit) === -1) {
+                if (!useCallback && !!$routeParams.limit && scope.config.limits.indexOf($routeParams.limit)) {
+                    scope.pagination.limit = $routeParams.limit;
+                }
+            }
+            if (scope.pagination.limit) {
+                scope.pagination.limit = scope.config.defaultLimit;
+            }
             scope.setLimit = function(limit) {
                 scope.pagination.limit = limit;
-                if (typeof scope.onChange === "function") {
+                if (useCallback) {
                     scope.onChange(scope.pagination);
-                } else {}
+                } else {
+                    $routeParams.limit = limit;
+                    $location.search($routeParams);
+                }
             };
         }
     };
 } ]);
 
-angular.module("ez.paginator").directive("ezPager", [ "$location", "$routeParams", function($location, $routeParams) {
+angular.module("ez.paginator").directive("ezPager", [ "EzPaginatorConfig", "$location", "$routeParams", function(EzPaginatorConfig, $location, $routeParams) {
     return {
-        restrict: "EA",
+        restrict: "A",
         scope: {
-            pager: "="
+            pagination: "=ezPager",
+            ezConfig: "=?",
+            onChange: "=?"
         },
-        templateUrl: "common/mdPager/md_pager.html",
-        link: function(scope) {
-            scope.pageChanged = function() {
-                var params = $routeParams;
-                params.page = !params.limit || scope.pager.limit === parseInt(params.limit, 10) ? scope.pager.currentPage : 1;
-                params.limit = scope.pager.limit;
-                $location.search(params);
+        templateUrl: "ez_paginator/pager/pager.html",
+        link: function(scope, $el, attrs) {
+            var useCallback = typeof scope.onChange === "function";
+            var init = function() {
+                scope.config = EzPaginatorConfig.get(scope, attrs);
+                scope.pagination.items = scope.pagination.items || [];
+                if (!scope.pagination.page && !useCallback) {
+                    scope.pagination.page = $routeParams.page;
+                }
+                if (!scope.pagination.page) {
+                    scope.pagination.page = scope.config.initialPage;
+                }
+                if (!scope.pagination.pages) {
+                    scope.pagination.pages = Math.ceil(scope.pagination.items.length / scope.pagination.limit);
+                }
+                if (!scope.pagination.itemCount) {
+                    scope.pagination.itemCount = scope.pagination.items.length;
+                }
             };
+            scope.pageChanged = function() {
+                if (useCallback) {
+                    scope.onChange(scope.pagination);
+                } else {
+                    $routeParams.page = scope.pagination.page;
+                    $location.search($routeParams);
+                }
+            };
+            init();
         }
     };
 } ]);
@@ -105,49 +148,40 @@ angular.module("ez.paginator").directive("ezPaginator", [ "$location", "$routePa
         },
         templateUrl: "ez_paginator/paginator/paginator.html",
         link: function(scope, $el, attrs) {
-            scope.config = EzPaginatorConfig.get(scope, attrs);
-            scope.pagination.maxPages = scope.pagination.maxPages || scope.config.maxPages;
-            scope.pagination.limit = scope.pagination.limit || scope.config.limit;
-            scope.pagination.items = scope.pagination.items || [];
-            scope.pagination.page = scope.pagination.page || scope.config.initialPage;
-            var update = function() {
-                scope.hasBeenInitialized = true;
+            var useCallback = typeof scope.onChange === "function";
+            var init = function() {
+                scope.config = EzPaginatorConfig.get(scope, attrs);
+                scope.pagination.maxPages = scope.pagination.maxPages || scope.config.maxPages;
+                scope.pagination.items = scope.pagination.items || [];
+                if (!scope.pagination.page && !useCallback) {
+                    scope.pagination.page = $routeParams.page;
+                }
+                if (!scope.pagination.page) {
+                    scope.pagination.page = scope.config.initialPage;
+                }
                 if (!scope.pagination.pages) {
                     scope.pagination.pages = Math.ceil(scope.pagination.items.length / scope.pagination.limit);
                 }
-                if (!scope.pagination.pages || scope.pagination.pages === 1) {
-                    scope.config.showPaginator = false;
-                } else {
-                    scope.config.showPaginator = true;
+                if (!scope.pagination.itemCount) {
+                    scope.pagination.itemCount = scope.pagination.items.length;
                 }
-                scope.pagination.itemCount = scope.pagination.items.length;
             };
-            scope.pageChanged = function() {
-                if (typeof scope.onChange === "function") {
+            scope.pageChanged = function(page) {
+                if (useCallback) {
                     scope.onChange(scope.pagination);
                 } else {
-                    angular.extend($routeParams, {
-                        page: scope.pagination.page,
-                        state: scope.pagination.state,
-                        limit: scope.pagination.limit
-                    });
+                    $routeParams.page = scope.pagination.page;
                     $location.search($routeParams);
                 }
             };
-            scope.$watch("pagination.items", function(newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    update();
-                }
-            });
-            update();
+            init();
         }
     };
 } ]);
 
-angular.module("ez.paginator").directive("ezPaginatorState", [ "$routeParams", "EzPaginatorConfig", function($routeParams, EzPaginatorConfig) {
+angular.module("ez.paginator").directive("ezPaginatorState", [ "$routeParams", "$location", "EzPaginatorConfig", function($routeParams, $location, EzPaginatorConfig) {
     return {
         restrict: "A",
-        replace: true,
         scope: {
             pagination: "=ezPaginatorState",
             ezConfig: "=?",
@@ -156,11 +190,35 @@ angular.module("ez.paginator").directive("ezPaginatorState", [ "$routeParams", "
         templateUrl: "ez_paginator/state/state.html",
         link: function(scope, $el, attrs) {
             scope.config = EzPaginatorConfig.get(scope, attrs);
-            scope.pagination.state = scope.config.states[0];
+            var useCallback = typeof scope.onChange === "function";
+            if (!scope.pagination.state) {
+                if (!useCallback) {
+                    scope.pagination.state = $routeParams.state;
+                } else {
+                    scope.pagination.state = scope.config.defaultState;
+                }
+            }
+            scope.getName = function getState(id) {
+                var state = scope.config.states[0];
+                if (!!id) {
+                    for (var i = 0; i < scope.config.states.length; i++) {
+                        if (scope.config.states[i].id === id) {
+                            state = scope.config.states[i];
+                            break;
+                        }
+                    }
+                }
+                return state.name;
+            };
             scope.setState = function(state) {
-                scope.pagination.state = state;
-                if (typeof scope.onChange === "function") {
+                scope.pagination.state = state.id;
+                scope.pagination.page = 1;
+                if (useCallback) {
                     scope.onChange(scope.pagination);
+                } else {
+                    $routeParams.state = state.id;
+                    $routeParams.page = 1;
+                    $location.search($routeParams);
                 }
             };
         }

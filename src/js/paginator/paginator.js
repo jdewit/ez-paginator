@@ -7,64 +7,56 @@ angular.module('ez.paginator').directive('ezPaginator', [
     $routeParams,
     EzPaginatorConfig
   ) {
-  return {
-    restrict: 'A',
-    scope: {
-      pagination: '=ezPaginator',
-      ezConfig: '=?',
-      onChange: '=?'
-    },
-    templateUrl: 'ez_paginator/paginator/paginator.html',
-    link: function(scope, $el, attrs) {
+    return {
+      restrict: 'A',
+      scope: {
+        pagination: '=ezPaginator',
+        ezConfig: '=?',
+        onChange: '=?'
+      },
+      templateUrl: 'ez_paginator/paginator/paginator.html',
+      link: function(scope, $el, attrs) {
+        var useCallback = typeof scope.onChange === 'function';
 
-      scope.config = EzPaginatorConfig.get(scope, attrs);
+        var init = function() {
+          scope.config = EzPaginatorConfig.get(scope, attrs);
 
-      // set mandatory defaults if none provided
-      scope.pagination.maxPages = scope.pagination.maxPages || scope.config.maxPages;
-      scope.pagination.limit = scope.pagination.limit || scope.config.limit;
-      scope.pagination.items = scope.pagination.items || [];
-      scope.pagination.page = scope.pagination.page || scope.config.initialPage;
+          scope.pagination.maxPages = scope.pagination.maxPages || scope.config.maxPages;
+          scope.pagination.items = scope.pagination.items || [];
 
-      var update = function() {
-        scope.hasBeenInitialized = true;
+          if (!scope.pagination.page && !useCallback) {
+            scope.pagination.page = $routeParams.page;
+          }
 
-        // if the pages property has not been set than we assume all of the items have been provided
-        // and we can calculate the number of pages manually
-        // for server side pagination, pages should be set already
-        if (!scope.pagination.pages) {
-          scope.pagination.pages = Math.ceil(scope.pagination.items.length / scope.pagination.limit);
-        }
+          if (!scope.pagination.page) {
+            scope.pagination.page = scope.config.initialPage;
+          }
 
-        if (!scope.pagination.pages || scope.pagination.pages === 1) {
-          scope.config.showPaginator = false;
-        } else {
-          scope.config.showPaginator = true;
-        }
+          // if the pages property has not been set than we assume all of the items have been provided
+          // and we can calculate the number of pages manually
+          // for server side pagination, "pages" & "itemCount" should be set already
+           
+          if (!scope.pagination.pages) {
+            scope.pagination.pages = Math.ceil(scope.pagination.items.length / scope.pagination.limit);
+          }
 
-        scope.pagination.itemCount = scope.pagination.items.length;
-      };
+          if (!scope.pagination.itemCount) {
+            scope.pagination.itemCount = scope.pagination.items.length;
+          }
+        };
 
-      scope.pageChanged = function() {
-        if (typeof scope.onChange === 'function') {
-          scope.onChange(scope.pagination);
-        } else {
-          angular.extend($routeParams, {
-            page: scope.pagination.page,
-            state: scope.pagination.state,
-            limit: scope.pagination.limit,
-          });
+        scope.pageChanged = function(page) {
+          if (useCallback) {
+            scope.onChange(scope.pagination);
+          } else {
+            $routeParams.page = scope.pagination.page;
 
-          $location.search($routeParams);
-        }
-      };
+            $location.search($routeParams);
+          }
+        };
 
-      scope.$watch('pagination.items', function(newVal, oldVal) {
-        if (newVal !== oldVal) {
-          update();
-        }
-      });
-
-      update();
-    }
-  };
-}]);
+        init();
+      }
+    };
+  }
+]);

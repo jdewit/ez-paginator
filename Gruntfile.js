@@ -36,7 +36,7 @@ module.exports = function(grunt) {
 		ngtemplates: {
 		  ezPaginator: {
         src:      'src/**/*.html',
-        dest:     'dist/ez-paginator-tpl.min.js',
+        dest:     'dist/ez-paginator-tpl.js',
         options: {
           module: 'ez.paginator',
           url: function(url) { return url.replace('src/js', 'ez_paginator'); },
@@ -66,7 +66,7 @@ module.exports = function(grunt) {
       dist: {
         files: {
           'dist/ez-paginator.min.js': ['dist/ez-paginator.js'],
-          'dist/ez-paginator-tpl.min.js': ['dist/ez-paginator-tpl.min.js'],
+          'dist/ez-paginator-tpl.js': ['dist/ez-paginator-tpl.min.js'],
         }
       }
     },

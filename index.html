@@ -14,12 +14,16 @@
 
   <link href="dist/ez-paginator.min.css" rel="stylesheet"/>
   <script src="dist/ez-paginator.js"></script>
-  <script src="dist/ez-paginator-tpl.min.js"></script>
+  <script src="dist/ez-paginator-tpl.js"></script>
 
   <script>
     angular.module('myApp', ['ui.bootstrap', 'ez.paginator', 'ngRoute'])
 
-    .controller('AppCtrl', ['$scope', '$interval', '$q', function AppCtrl($scope, $interval, $q) {
+    .controller('AppCtrl', ['$scope', '$interval', '$q', 'pagerConfig', function AppCtrl($scope, $interval, $q, pagerConfig) {
+
+      pagerConfig.previousText = '<- Prev';
+      pagerConfig.nextText = 'Next ->';
+
       var names = [
         {name: 'Hi'},
         {name: 'there'},
@@ -59,7 +63,6 @@
         deletedItems.push({name: names[index].name + ' - (deleted)'});
       }
 
-      
       $scope.data = {
         pagination: {
           limit: 5,
@@ -76,16 +79,20 @@
           page: 1,
           pages: Math.ceil(items / 15),
           items: items.splice(0, 15)
-        }            
+        },
+        pager: {
+          limit: 5,
+          page: 1,
+          items: items
+        }
       };
 
       $scope.pagination2Changed = function(pagination) {
-        console.log(pagination);
         angular.extend($scope.data.pagination2, {
           limit: pagination.limit,
           page: pagination.page,
-          items:(pagination.state.id == 'active' ? items : deletedItems),
-          pages: Math.ceil((pagination.state.id == 'active' ? items : deletedItems) / pagination.limit)
+          items:(pagination.state == 'active' ? items : deletedItems),
+          pages: Math.ceil((pagination.state == 'active' ? items : deletedItems) / pagination.limit)
         });
       };
 
@@ -93,7 +100,7 @@
         $scope.data.pagination3 = {
           limit: pagination.limit,
           page: pagination.page,
-          items: (pagination.state.id == 'active' ? items : deletedItems).splice(pagination.page * pagination.limit, (pagination.page * pagination.limit + pagination.limit))
+          items: (pagination.state == 'active' ? items : deletedItems).splice(pagination.page * pagination.limit, (pagination.page * pagination.limit + pagination.limit))
         };
 
         $scope.data.pagination3.pages = Math.ceil($scope.data.pagination3.items / pagination.limit);
@@ -111,23 +118,29 @@
     </div>
     <div class="page-body">
 
-      <h3>Client side pagination</h3>
+      <h3>Client side pagination with route param updates</h3>
       <ul>
         <li ng-repeat="item in data.pagination.items.slice(((data.pagination.page -1) * data.pagination.limit), ((data.pagination.page) * data.pagination.limit)) track by $index">{{ item.name }}</li>
       </ul>
       <div ez-paginator="data.pagination"></div>
 
-      <h3>Client side pagination with paginator bar</h3>
+      <h3>Client side pagination bar with using calllback</h3>
       <ul>
         <li ng-repeat="item in data.pagination2.items.slice(((data.pagination2.page -1) * data.pagination2.limit), ((data.pagination2.page) * data.pagination2.limit)) track by $index">{{ item.name }}</li>
       </ul>
-      <div ez-paginator-bar="data.pagination2" on-change="pagination2Changed"></div>
+      <div ez-paginator-bar="data.pagination2" on-change="pagination2Changed" state-container-class="dropdown"></div>
 
-      <h3>Server side pagination with paginator bar</h3>
+      <h3>Server side pagination bar using callback</h3>
       <ul>
         <li ng-repeat="item in data.pagination3.items track by $index">{{ item.name }}</li>
       </ul>
-      <div ez-paginator-bar="data.pagination3" on-change="pagination3Changed" state-container-class="dropup"></div>
+      <div ez-paginator-bar="data.pagination3" on-change="pagination3Changed"></div>
+
+      <h3>Client side pager with route param updates</h3>
+      <ul>
+        <li ng-repeat="item in data.pager.items.slice(((data.pager.page -1) * data.pager.limit), ((data.pager.page) * data.pager.limit)) track by $index">{{ item.name }}</li>
+      </ul>
+      <div ez-pager="data.pager" style="width: 200px;"></div>
 
     </div>
   </div>
