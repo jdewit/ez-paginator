@@ -54,13 +54,13 @@
       for (var i = 0; i <= 200; i++) {
         index = Math.floor(Math.random() * (17 + 1));
 
-        items.push(names[index]);
+        items.push({name: names[index].name + ' - ' + i});
       }
 
       for (var j = 0; j <= 50; j++) {
         index = Math.floor(Math.random() * (17 + 1));
 
-        deletedItems.push({name: names[index].name + ' - (deleted)'});
+        deletedItems.push({name: names[index].name + ' - (deleted)' + j});
       }
 
       $scope.data = {
@@ -87,12 +87,33 @@
         }
       };
 
+      $scope.search = function() {
+        var q = $scope.data.q;
+
+        var regex = new RegExp('^.*' + q + '.*$');
+
+        var targetItems = $scope.data.pagination2.state == 'active' ? items : deletedItems;
+
+        var _items = targetItems.filter(function(_item) {
+          return _item.name.match(regex);
+        });
+
+        angular.extend($scope.data.pagination2, {
+          limit: $scope.data.pagination2.limit,
+          page: 1,
+          itemCount: _items.length,
+          items: _items,
+          pages: Math.ceil(_items.length / $scope.data.pagination2.limit)
+        });
+
+      };
+
       $scope.pagination2Changed = function(pagination) {
         angular.extend($scope.data.pagination2, {
           limit: pagination.limit,
           page: pagination.page,
           items:(pagination.state == 'active' ? items : deletedItems),
-          pages: Math.ceil((pagination.state == 'active' ? items : deletedItems) / pagination.limit)
+          pages: Math.ceil((pagination.state == 'active' ? items.length : deletedItems.length) / pagination.limit)
         });
       };
 
@@ -103,7 +124,7 @@
           items: (pagination.state == 'active' ? items : deletedItems).splice(pagination.page * pagination.limit, (pagination.page * pagination.limit + pagination.limit))
         };
 
-        $scope.data.pagination3.pages = Math.ceil($scope.data.pagination3.items / pagination.limit);
+        $scope.data.pagination3.pages = Math.ceil($scope.data.pagination3.items.length / pagination.limit);
       };
 
     }])
@@ -124,7 +145,11 @@
       </ul>
       <div ez-paginator="data.pagination"></div>
 
-      <h3>Client side pagination bar with using calllback</h3>
+      <h3>
+        Client side pagination bar using calllback and search
+        <input type="text" ng-change="search()" ng-model="data.q" placeholder="Search..."/>
+      </h3>
+
       <ul>
         <li ng-repeat="item in data.pagination2.items.slice(((data.pagination2.page -1) * data.pagination2.limit), ((data.pagination2.page) * data.pagination2.limit)) track by $index">{{ item.name }}</li>
       </ul>
