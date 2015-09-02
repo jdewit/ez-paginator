@@ -1,16 +1,18 @@
 angular.module('ez.paginator').directive('ezPager', [
+  'EzConfigResolver',
   'EzPaginatorConfig',
   '$location',
   '$routeParams',
   function(
+    EzConfigResolver,
     EzPaginatorConfig,
     $location,
     $routeParams
   ) {
     return {
-      restrict: 'A',
+      restrict: 'EA',
       scope: {
-        pagination: '=ezPager',
+        pagination: '=',
         ezConfig: '=?',
         onChange: '=?'
       },
@@ -19,24 +21,24 @@ angular.module('ez.paginator').directive('ezPager', [
         var useCallback = typeof scope.onChange === 'function';
 
         var init = function() {
-          scope.config = EzPaginatorConfig.get(scope, attrs);
-
+          scope.config = EzConfigResolver.resolve(scope, attrs, EzPaginatorConfig);
 
           scope.pagination.items = scope.pagination.items || [];
 
           if (!scope.pagination.page && !useCallback) {
-            scope.pagination.page = $routeParams.page;
+            scope.pagination.page = $location.search().page;
           }
 
           if (!scope.pagination.page) {
             scope.pagination.page = scope.config.initialPage;
           }
 
-          // if the pages property has not been set than we assume all of the items have been provided
-          // and we can calculate the number of pages manually
-          // for server side pagination, "pages" & "itemCount" should be set already
+          if (!scope.pagination.limit) {
+            scope.pagination.limit = scope.config.defaultLimit;
+          }
+
           if (!scope.pagination.pages) {
-            scope.pagination.pages = Math.ceil(scope.pagination.items.length / scope.pagination.limit);
+            scope.pagination.pages = Math.ceil(scope.pagination.items.length / scope.pagination.limit) || 1;
           }
 
           if (!scope.pagination.itemCount) {
@@ -44,7 +46,16 @@ angular.module('ez.paginator').directive('ezPager', [
           }
         };
 
-        scope.pageChanged = function() {
+        scope.selectPage = function(pageNumber) {
+          if (pageNumber < 1) {
+            pageNumber = 1;
+          } else if (pageNumber > scope.pagination.pages) {
+            pageNumber = scope.pagination.pages;
+          }
+
+          scope.pagination.page = pageNumber;
+
+
           if (useCallback) {
             scope.onChange(scope.pagination);
           } else {

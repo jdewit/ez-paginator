@@ -1,1 +1,10 @@
-<pager class="ez-pager" total-items="pagination.itemCount" items-per-page="pagination.limit" ng-model="pagination.page" ng-change="pageChanged()"></pager>
+<ul class="ez-pager pager">
+  <li ng-class="{disabled: pagination.page <= 1}"><a ng-click="selectPage(pagination.page - 1)">
+    <i class="{{::config.pagerPrevBtnIconClass}}"></i>
+    {{::config.pagerPrevBtnText}}
+  </a></li>
+  <li ng-class="{disabled: pagination.page >= pagination.pages}"><a ng-click="selectPage(pagination.page + 1)">
+    {{::config.pagerNextBtnText}}
+    <i class="{{::config.pagerNextBtnIconClass}}"></i>
+  </a></li>
+</ul>

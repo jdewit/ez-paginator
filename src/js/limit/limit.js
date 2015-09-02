@@ -1,33 +1,35 @@
 angular.module('ez.paginator').directive('ezPaginatorLimit', [
   '$routeParams',
   '$location',
+  'EzConfigResolver',
   'EzPaginatorConfig',
   function(
     $routeParams,
     $location,
+    EzConfigResolver,
     EzPaginatorConfig
   ) {
     return {
-      restrict: 'A',
+      restrict: 'EA',
       scope: {
-        pagination: '=ezPaginatorLimit',
+        pagination: '=',
         ezConfig: '=?',
         onChange: '=?'
       },
       templateUrl: 'ez_paginator/limit/limit.html',
       link: function(scope, $el, attrs) {
-
-        scope.config = EzPaginatorConfig.get(scope, attrs);
+        scope.config = EzConfigResolver.resolve(scope, attrs, EzPaginatorConfig);
 
         var useCallback = typeof scope.onChange === 'function';
 
         if (!scope.pagination.limit || scope.config.limits.indexOf(scope.pagination.limit) === -1)  {
-          if (!useCallback && !!$routeParams.limit && scope.config.limits.indexOf($routeParams.limit)) {
-            scope.pagination.limit = $routeParams.limit;
+          var limit = $location.search().limit;
+          if (!useCallback && !!limit && scope.config.limits.indexOf(limit)) {
+            scope.pagination.limit = limit;
           }
         }
 
-        if (scope.pagination.limit) {
+        if (!scope.pagination.limit) {
           scope.pagination.limit = scope.config.defaultLimit;
         }
 

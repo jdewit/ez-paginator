@@ -4,12 +4,14 @@
 <head>
   <!--dependencies start -->
   <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.0/css/bootstrap.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+  <link href="//rawgit.com/jdewit/ez-dropdown/master/dist/ez-dropdown.min.css" rel="stylesheet">
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-route.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.1/ui-bootstrap.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.1/ui-bootstrap-tpls.min.js"></script>
+  <script src="//rawgit.com/jdewit/ez-dropdown/master/dist/ez-dropdown.min.js"></script>
+  <script src="//rawgit.com/jdewit/ez-config-resolver/master/src/ez-config-resolver.js"></script>
   <!--dependencies end -->
 
   <link href="dist/ez-paginator.min.css" rel="stylesheet"/>
@@ -17,12 +19,9 @@
   <script src="dist/ez-paginator-tpl.js"></script>
 
   <script>
-    angular.module('myApp', ['ui.bootstrap', 'ez.paginator', 'ngRoute'])
+    angular.module('myApp', ['ez.paginator', 'ez.dropdown', 'ez.configResolver', 'ngRoute'])
 
-    .controller('AppCtrl', ['$scope', '$interval', '$q', 'pagerConfig', function AppCtrl($scope, $interval, $q, pagerConfig) {
-
-      pagerConfig.previousText = '<- Prev';
-      pagerConfig.nextText = 'Next ->';
+    .controller('AppCtrl', ['$scope', '$interval', '$q', function AppCtrl($scope, $interval, $q) {
 
       var names = [
         {name: 'Hi'},
@@ -66,20 +65,10 @@
       $scope.data = {
         pagination: {
           limit: 5,
-          page: 1,
           items: items
         },
-        pagination2: {
-          limit: 5,
-          page: 1,
-          items: items
-        },
-        pagination3: {
-          limit: 15,
-          page: 1,
-          pages: Math.ceil(items / 15),
-          items: items.splice(0, 15)
-        },
+        pagination2: {},
+        pagination3: {},
         pager: {
           limit: 5,
           page: 1,
@@ -92,7 +81,7 @@
 
         var regex = new RegExp('^.*' + q + '.*$');
 
-        var targetItems = $scope.data.pagination2.state == 'active' ? items : deletedItems;
+        var targetItems = $scope.data.pagination2.state === 'deleted' ? deletedItems : items;
 
         var _items = targetItems.filter(function(_item) {
           return _item.name.match(regex);
@@ -103,7 +92,7 @@
           page: 1,
           itemCount: _items.length,
           items: _items,
-          pages: Math.ceil(_items.length / $scope.data.pagination2.limit)
+          pages: Math.ceil(_items.length / $scope.data.pagination2.limit) || 1
         });
 
       };
@@ -112,20 +101,22 @@
         angular.extend($scope.data.pagination2, {
           limit: pagination.limit,
           page: pagination.page,
-          items:(pagination.state == 'active' ? items : deletedItems),
-          pages: Math.ceil((pagination.state == 'active' ? items.length : deletedItems.length) / pagination.limit)
+          items: (pagination.state == 'active' ? items : deletedItems),
+          pages: Math.ceil((pagination.state === 'deleted' ? deletedItems.length : items.length) / pagination.limit) || 1
         });
       };
 
       $scope.pagination3Changed = function(pagination) {
-        $scope.data.pagination3 = {
-          limit: pagination.limit,
-          page: pagination.page,
-          items: (pagination.state == 'active' ? items : deletedItems).splice(pagination.page * pagination.limit, (pagination.page * pagination.limit + pagination.limit))
-        };
-
-        $scope.data.pagination3.pages = Math.ceil($scope.data.pagination3.items.length / pagination.limit);
+        angular.extend($scope.data.pagination3, {
+          page: pagination.page,  
+          items: (pagination.state === 'deleted' ? deletedItems : items).slice((pagination.page - 1) * pagination.limit, (((pagination.page - 1) * pagination.limit) + pagination.limit)),
+          pages: Math.ceil((pagination.state === 'deleted' ? deletedItems.length : items.length) / pagination.limit)
+        });
       };
+
+      $scope.pagination2Changed({page: 1, limit: 5});
+
+      $scope.pagination3Changed({page: 1, limit: 15});
 
     }])
 ;
@@ -143,7 +134,7 @@
       <ul>
         <li ng-repeat="item in data.pagination.items.slice(((data.pagination.page -1) * data.pagination.limit), ((data.pagination.page) * data.pagination.limit)) track by $index">{{ item.name }}</li>
       </ul>
-      <div ez-paginator="data.pagination"></div>
+      <ez-paginator pagination="data.pagination" show-boundary-links="true"></ez-paginator>
 
       <h3>
         Client side pagination bar using calllback and search
@@ -151,21 +142,22 @@
       </h3>
 
       <ul>
-        <li ng-repeat="item in data.pagination2.items.slice(((data.pagination2.page -1) * data.pagination2.limit), ((data.pagination2.page) * data.pagination2.limit)) track by $index">{{ item.name }}</li>
+        <li ng-repeat="item in data.pagination2.items.slice(((data.pagination2.page -1) * data.pagination2.limit), ((data.pagination2.page - 1) * data.pagination2.limit) + data.pagination2.limit)">{{ item.name }}</li>
       </ul>
-      <div ez-paginator-bar="data.pagination2" on-change="pagination2Changed" state-container-class="dropdown"></div>
+      <ez-paginator-bar pagination="data.pagination2" on-change="pagination2Changed" state-container-class="dropdown"></ez-paginator-bar>
 
       <h3>Server side pagination bar using callback</h3>
       <ul>
-        <li ng-repeat="item in data.pagination3.items track by $index">{{ item.name }}</li>
+        <li ng-repeat="item in data.pagination3.items">{{ item.name }}</li>
       </ul>
-      <div ez-paginator-bar="data.pagination3" on-change="pagination3Changed"></div>
+      <ez-paginator-bar pagination="data.pagination3" on-change="pagination3Changed"></ez-paginator-bar>
 
       <h3>Client side pager with route param updates</h3>
       <ul>
         <li ng-repeat="item in data.pager.items.slice(((data.pager.page -1) * data.pager.limit), ((data.pager.page) * data.pager.limit)) track by $index">{{ item.name }}</li>
       </ul>
-      <div ez-pager="data.pager" style="width: 200px;"></div>
+
+      <ez-pager pagination="data.pager" style="width: 200px;"></ez-pager>
 
     </div>
   </div>

@@ -1,9 +1,10 @@
 .ez-paginator-bar {
   margin: 20px 0;
   text-align: center;
+  min-height: 20px;
 
   .pagination {
-      margin: 0;
+    margin: 0;
   }
 
   .ez-paginator-state {
@@ -27,4 +28,20 @@
     cursor: pointer;
   }
 
+}
+
+.ez-paginator, .ez-pager {
+  li a {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -ms-user-select: none;
+  }
+
+  li.disabled {
+    a, i {
+      cursor: not-allowed;
+    }
+  }
 }

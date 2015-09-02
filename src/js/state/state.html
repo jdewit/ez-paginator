@@ -1,6 +1,6 @@
-<span class="ez-paginator-state dropdown" ng-class="config.stateContainerClass" dropdown>
-  <a class="dropdown-toggle" ng-class="config.stateToggleClass" dropdown-toggle title="Change State">{{ getName(pagination.state) }} <span class="caret"></span></a>
-  <ul class="dropdown-menu" ng-class="config.stateDropdownMenuClass">
+<span dropdown class="ez-paginator-state" ng-class="config.stateContainerClass">
+  <a dropdown-toggle ng-class="config.stateToggleClass" title="Change State">{{ getName(pagination.state) }} <span class="caret"></span></a>
+  <ul ng-class="config.stateDropdownMenuClass">
     <li ng-repeat="state in config.states" ng-class="{active: state.id == pagination.state}"><a ng-click="setState(state)">{{ ::state.name }}</a></li>
   </ul>
 </span>

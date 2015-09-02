@@ -1,29 +1,31 @@
 angular.module('ez.paginator').directive('ezPaginatorState', [
   '$routeParams',
   '$location',
+  'EzConfigResolver',
   'EzPaginatorConfig',
   function(
     $routeParams,
     $location,
+    EzConfigResolver,
     EzPaginatorConfig
   ) {
     return {
-      restrict: 'A',
+      restrict: 'EA',
       scope: {
-        pagination: '=ezPaginatorState',
+        pagination: '=',
         ezConfig: '=?',
         onChange: '=?'
       },
       templateUrl: 'ez_paginator/state/state.html',
       link: function(scope, $el, attrs) {
 
-        scope.config = EzPaginatorConfig.get(scope, attrs);
+        scope.config = EzConfigResolver.resolve(scope, attrs, EzPaginatorConfig);
 
         var useCallback = typeof scope.onChange === 'function';
 
         if (!scope.pagination.state) {
           if (!useCallback) {
-            scope.pagination.state = $routeParams.state;
+            scope.pagination.state = $location.search().state;
           } else {
             scope.pagination.state = scope.config.defaultState;
           }

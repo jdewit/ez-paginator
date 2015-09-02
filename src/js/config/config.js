@@ -1,5 +1,33 @@
 angular.module('ez.paginator').constant('EzPaginatorConfig', {
 
+  showBoundaryLinks: false,
+
+  showDirectionLinks: true,
+
+  firstBtnText: '',
+
+  firstBtnIconClass: 'fa fa-angle-double-left',
+
+  prevBtnText: '',
+
+  prevBtnIconClass: 'fa fa-angle-left',
+
+  nextBtnText: '',
+
+  nextBtnIconClass: 'fa fa-angle-right',
+
+  lastBtnText: '',
+
+  lastBtnIconClass: 'fa fa-angle-double-right',
+
+  pagerPrevBtnText: 'Previous',
+
+  pagerPrevBtnIconClass: 'fa fa-angle-double-left',
+
+  pagerNextBtnText: 'Next',
+
+  pagerNextBtnIconClass: 'fa fa-angle-double-right',
+
   /**
    * Max number of paginator pages show
    */
@@ -19,7 +47,7 @@ angular.module('ez.paginator').constant('EzPaginatorConfig', {
    * Show state selector for paginator bar
    */
   showState: true,
-  
+
   /**
    * Show limit selector for paginator bar
    */
@@ -52,7 +80,7 @@ angular.module('ez.paginator').constant('EzPaginatorConfig', {
   /**
    * State select dropdown menu class
    */
-  stateDropdownMenuClass: 'pointer pull-right',
+  stateDropdownMenuClass: 'dropdown-menu pointer pull-right',
 
   /**
    * State select container class
@@ -77,48 +105,11 @@ angular.module('ez.paginator').constant('EzPaginatorConfig', {
   /**
    * Limit select dropdown menu class
    */
-  limitDropdownMenuClass: 'pointer pull-right',
+  limitDropdownMenuClass: 'dropdown-menu pointer pull-right',
 
   /**
    * Limit select container class
    */
   limitContainerClass: 'dropup',
-
-  /**
-   * Get resolved config
-   *
-   * Resolve this constant with options set on attrs or ezConfig
-   */
-  get: function(scope, attrs) {
-    var config = angular.extend({}, this);
-
-    delete config.get; // remove get function
-
-    if (!!scope.ezConfig) {
-      config = angular.extend(config, scope.ezConfig);
-    }
-
-    if (!!scope && !!attrs) {
-      var properties = Object.getOwnPropertyNames(this);
-
-      properties.forEach(function(prop) {
-        if (attrs.hasOwnProperty(prop)) {
-          if (typeof config[prop] === 'boolean') {
-            if (attrs[prop] === 'true') {
-              config[prop] = true;
-            } else if (attrs[prop] === 'false') {
-              config[prop] = false;
-            } else {
-              config[prop] = scope.$parent[attrs[prop]];
-            }
-          } else {
-            config[prop] = attrs[prop];    
-          }
-        }
-      });
-    }
-
-    return config;
-  }
 
 });

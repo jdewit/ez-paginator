@@ -1,8 +1,6 @@
 EZ-PAGINATOR
 ============
-Angular Bootstrap pagination directive. 
-
-Provides additional functionality for the angular-ui bootstrap paginator
+Angular pagination directive. 
 
 ###Demo
 
@@ -15,7 +13,8 @@ View <a href="http://cdn.rawgit.com/jdewit/ez-paginator/master/index.html">DEMO<
 
 ###Requirements
 - Angular 1.3+
-- AngularUI Bootstrap
+- ez-dropdown (for paginator-bar)
+- Bootstrap CSS
 
 ###Installation
 ```
@@ -41,6 +40,3 @@ Each option can be customized by:
 3. Setting the value of the config option via an attribute
 
 See the demo for sample usage.
-
-###Server side pagination
-If you are not setting all of the items on the pagination object, you need to provide ensure that the properties "itemCount" and "pages" exits.Where itemCount is the number of total items in all the pages, and pages is the total number of pages.
