@@ -41,6 +41,7 @@ angular.module('ez.paginator').directive('ezPaginatorLimit', [
             scope.onChange(scope.pagination);
           } else {
             $routeParams.limit = limit;
+            $routeParams.page = 1;
 
             $location.search($routeParams);
           }

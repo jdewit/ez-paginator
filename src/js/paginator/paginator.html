@@ -1,20 +1,20 @@
 <ul class="ez-paginator pagination" ng-hide="pagination.page == 1 && pagination.pages == 1">
   <li ng-if="::config.showBoundaryLinks" ng-class="{disabled: pagination.page == 1}" class="pagination-first">
-    <a ng-click="selectPage(1, 'first')">
+    <a ng-click="selectPage(1)">
       <i class="{{::config.firstBtnIconClass}}"></i>
       {{::config.firstBtnText}}
     </a>
   </li>
 
   <li ng-if="::config.showDirectionLinks" ng-class="{disabled: pagination.page == 1}" class="pagination-prev">
-    <a ng-click="selectPage(pagination.page - 1, 'prev')">
+    <a ng-click="selectPage(pagination.page - 1)">
       <i class="{{::config.prevBtnIconClass}}"></i>
       {{::config.prevBtnText}}
     </a>
   </li>
 
   <li ng-show="pages[0].number != 1" class="pagination-left">
-    <a ng-click="selectPage(pages[0].number - config.maxPages, 'left')">...</a>
+    <a ng-click="selectPage(pages[0].number - config.maxPages)">...</a>
   </li>
 
   <li ng-repeat="page in pages" ng-class="{active: page.number == pagination.page}" class="pagination-page">
@@ -22,18 +22,18 @@
   </li>
 
   <li ng-show="pages[pages.length -1].number != pagination.pages" class="pagination-right">
-    <a ng-click="selectPage(pages[config.maxPages - 1].number, 'right')">...</a>
+    <a ng-click="selectPage(pages[config.maxPages - 1].number + config.maxPages)">...</a>
   </li>
 
   <li ng-if="::config.showDirectionLinks" ng-class="{disabled: pagination.page >= pagination.pages}" class="pagination-next">
-    <a ng-click="selectPage(pagination.page + 1, 'next')">
+    <a ng-click="selectPage(pagination.page + 1)">
       {{::config.nextBtnText}}
       <i class="{{::config.nextBtnIconClass}}"></i>
     </a>
   </li>
 
   <li ng-if="::config.showBoundaryLinks" ng-class="{disabled: pages[pages.length - 1].number >= pagination.pages}" class="pagination-last">
-    <a ng-click="selectPage(pagination.pages, 'last')">
+    <a ng-click="selectPage(pagination.pages)">
       {{::config.lastBtnText}}
       <i class="{{::config.lastBtnIconClass}}"></i>
     </a>
